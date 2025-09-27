@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario Vacaciones</title>
+
+    <!-- FullCalendar CSS -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
+
+    <!-- FullCalendar JS -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales/es.global.min.js'></script> <!-- Español -->
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+            font-size: 1.5em;
+            margin-top: 10px;
+        }
+        #calendar {
+            max-width: 100%;
+            margin: 10px auto;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+        }
+        .fc-daygrid-day-frame {
+            cursor: pointer;
+        }
+        .fc-event {
+            font-size: 0.8em;
+            padding: 2px;
+        }
+        .admin-panel {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .admin-button {
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            margin: 5px;
+        }
+        .admin-button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Calendario Vacaciones</h1>
+
+    <!-- Botones solo para súper usuario -->
+    {% if current_user.is_admin %}
+    <div class="admin-panel">
+        <a href="{{ url_for('create_user') }}" class="admin-button">Crear Usuario</a>
+        <a href="{{ url_for('export_vacations') }}" class="admin-button" style="background:#28a745;">Exportar a Excel</a>
+    </div>
+    {% endif %}
+
+    <div id='calendar'></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                selectable: true,
+                locale: 'es', // <-- idioma español
+                events: '/get_vacations',
+
+                dateClick: function (info) {
+                    let selectedDate = info.dateStr;
+
+                    fetch("/toggle_vacation", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ date: selectedDate })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            calendar.refetchEvents();
+                        } else {
+                            alert("Error guardando la fecha.");
+                        }
+                    });
+                },
+
+                eventContent: function(arg) {
+                    return { html: "<div style='background-color:" + arg.event.backgroundColor + "; padding:2px; font-size:0.8em;'>" + arg.event.title + "</div>" };
+                },
+
+                eventsSet: function(events) {
+                    let dateCount = {};
+                    events.forEach(event => {
+                        if (!dateCount[event.start]) dateCount[event.start] = 0;
+                        dateCount[event.start]++;
+                    });
+                    events.forEach(event => {
+                        if (dateCount[event.start] > 1) {
+                            event.setProp("backgroundColor", shadeColor(event.backgroundColor, -30));
+                        }
+                    });
+                }
+            });
+
+            function shadeColor(color, percent) {
+                let f=parseInt(color.slice(1),16),
+                    t=percent<0?0:255,
+                    p=percent<0?percent*-1:percent,
+                    R=f>>16,
+                    G=f>>8&0x00FF,
+                    B=f&0x0000FF;
+                return "#" + (0x1000000 + (Math.round((t-R)*p/100)+R)*0x10000 + (Math.round((t-G)*p/100)+G)*0x100 + (Math.round((t-B)*p/100)+B)).toString(16).slice(1);
+            }
+
+            calendar.render();
+        });
+    </script>
+
+</body>
+</html>

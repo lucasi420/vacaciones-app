@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Agregar Feriados</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        input[type="date"] {
+            padding: 8px;
+            font-size: 16px;
+        }
+        button {
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Agregar Feriado</h1>
+    <form id="holidayForm">
+        <input type="date" name="date" required>
+        <button type="submit">Agregar Feriado</button>
+    </form>
+
+    <script>
+        document.getElementById("holidayForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            let date = this.date.value;
+
+            fetch("/holidays", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ date: date })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Feriado agregado correctamente ✅");
+                    location.reload();
+                } else {
+                    alert("Error al agregar el feriado ❌");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

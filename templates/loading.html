@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Cargando...</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        img {
+            max-width: 80%;
+            margin-top: 50px;
+        }
+        #progressContainer {
+            width: 80%;
+            background-color: #ddd;
+            margin: 30px auto;
+            border-radius: 10px;
+        }
+        #progressBar {
+            width: 0%;
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vacaciones SUPER 2025-2026</h1>
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo Empresa">
+    <p>Cargando...</p>
+
+    <div id="progressContainer">
+        <div id="progressBar"></div>
+    </div>
+
+    <script>
+        let width = 0;
+        let interval = setInterval(frame, 70); // 70ms × 100 = 7000ms = 7 segundos
+
+        function frame() {
+            if (width >= 100) {
+                clearInterval(interval);
+                window.location.href = "{{ url_for('calendar') }}";
+            } else {
+                width++;
+                document.getElementById("progressBar").style.width = width + "%";
+            }
+        }
+    </script>
+</body>
+</html>
