@@ -17,4 +17,4 @@ pandas==2.0.3
 numpy==1.26.2
 Werkzeug==2.3.7
 selenium
-webdriver-manager==4.4.3
+webdriver-manager
