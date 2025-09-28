@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file
+From flask import Flask, render_template, request, redirect, url_for, jsonify, send_file
 from models import db, User, Vacation
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 import pandas as pd
@@ -14,6 +14,9 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///vacaciones.db"
 db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
+# 🚨 ESTA ES LA LÍNEA CLAVE PARA SOLUCIONAR EL ERROR "UNAUTHORIZED" 🚨
+login_manager.login_view = 'login' 
+# ----------------------------------------------------------------------
 
 
 @login_manager.user_loader
