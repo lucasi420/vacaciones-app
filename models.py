@@ -18,7 +18,6 @@ class User(UserMixin, db.Model):
 class Vacation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    date = db.Column(db.String(10), nullable=False)  # formato 'YYYY-MM-DD' 
+    date = db.Column(db.String(10), nullable=False)  # formato 'YYYY-MM-DD'
 
-    # Define la relación con el usuario
     user = db.relationship('User', backref=db.backref('vacations', lazy=True))
