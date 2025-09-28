@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: vacaciones-app
-    env: python
-    pythonVersion: "3.12.5"
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn app:app"
-    plan: free
