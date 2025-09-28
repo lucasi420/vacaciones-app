@@ -1,18 +1,23 @@
-# 1. ESPECIFICAR LA VERSIÓN DE PYTHON 3.11
 FROM python:3.11-slim
 
-# 2. CONFIGURAR EL DIRECTORIO DE TRABAJO
+# 1. Configurar variables de entorno para el entorno virtual (venv)
+ENV VIRTUAL_ENV=/venv
+ENV PATH="/venv/bin:$PATH"
+
+# 2. Establecer el directorio de trabajo
 WORKDIR /app
 
-# 3. COPIAR REQUISITOS E INSTALAR DEPENDENCIAS
+# 3. Copiar requisitos e instalar dependencias DENTRO del venv
 COPY requirements.txt .
+# Crea el entorno virtual
+RUN python3 -m venv $VIRTUAL_ENV
+# Instala las dependencias en el entorno virtual
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 4. COPIAR EL RESTO DEL CÓDIGO
+# 4. Copiar el resto del código
 COPY . .
 
-# 5. EXPONER EL PUERTO (Render usa la variable PORT automáticamente)
-# EXPOSE 8080 
-
-# 6. COMANDO DE INICIO (Ajuste 'mi_app:app' a su archivo y objeto Flask/FastAPI)
+# 5. Comando de inicio
+# Gunicorn ahora será encontrado a través del PATH /venv/bin
+# Asegúrese de que 'mi_app:app' coincida con su archivo y objeto de aplicación
 CMD gunicorn --bind 0.0.0.0:$PORT mi_app:app
