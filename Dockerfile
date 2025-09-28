@@ -20,4 +20,4 @@ COPY . .
 # 5. Comando de inicio
 # Gunicorn ahora será encontrado a través del PATH /venv/bin
 # Asegúrese de que 'mi_app:app' coincida con su archivo y objeto de aplicación
-CMD gunicorn --bind 0.0.0.0:$PORT mi_app:app
+CMD gunicorn --bind 0.0.0.0:$PORT app:app
