@@ -3,34 +3,78 @@
 <head>
     <meta charset="utf-8">
     <title>Cargando...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    
     <style>
+        /* ------------------------------------------------------------------ */
+        /* CSS para Pantalla Completa y Centrado (Copiado del estilo anterior) */
+        /* ------------------------------------------------------------------ */
+        html {
+            height: 100%;
+        }
+        
         body {
-            text-align: center;
+            /* Fuente y Fondo */
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            background-color: #f0ff0f; /* Fondo gris suave */
+            
+            /* Centrado perfecto con Flexbox */
+            display: flex;
+            flex-direction: column; /* Apila los elementos verticalmente */
+            justify-content: center; /* Centrado vertical */
+            align-items: center;     /* Centrado horizontal */
+            
+            /* Ocupar toda la pantalla */
+            height: 100vh; 
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
+
+        /* ------------------------------------------------------------------ */
+        /* ESTILOS ESPECÍFICOS DE LA PÁGINA DE CARGA */
+        /* ------------------------------------------------------------------ */
+        h1 {
+            color: #333; /* Color de encabezado consistente */
+            margin-bottom: 30px;
+        }
+        
         img {
-            max-width: 80%;
-            margin-top: 50px;
+            max-width: 250px; /* Tamaño del logo ajustado */
+            height: auto;
+            margin-bottom: 40px;
         }
+        
+        p {
+            color: #555;
+            font-size: 1.2em;
+            margin-top: 0;
+        }
+
+        /* Contenedor de la barra de progreso */
         #progressContainer {
-            width: 80%;
-            background-color: #ddd;
-            margin: 30px auto;
+            width: 90%;
+            max-width: 400px; /* Ancho máximo profesional */
+            background-color: #e0e0e0; /* Gris claro */
+            margin-top: 15px;
             border-radius: 10px;
+            overflow: hidden; /* Importante para que la barra interna respete el borde */
         }
+        
+        /* La barra de progreso en sí */
         #progressBar {
             width: 0%;
             height: 20px;
-            background-color: #4CAF50;
+            background-color: #007BFF; /* Usamos el azul corporativo del botón de login */
             border-radius: 10px;
+            transition: width 0.1s linear; /* Suaviza un poco la animación */
         }
     </style>
 </head>
 <body>
     <h1>Vacaciones SUPER 2025-2026</h1>
     <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo Empresa">
-    <p>Cargando...</p>
+    <p>Cargando información del calendario...</p>
 
     <div id="progressContainer">
         <div id="progressBar"></div>
@@ -38,12 +82,14 @@
 
     <script>
         let width = 0;
-        let interval = setInterval(frame, 70); // 70ms × 100 = 7000ms = 7 segundos
+        // Intervalo: 70ms * 100 pasos = 7 segundos de carga
+        let interval = setInterval(frame, 70); 
 
         function frame() {
             if (width >= 100) {
                 clearInterval(interval);
-                window.location.href = "{{ url_for('calendar') }}";
+                // Redirige al usuario al calendario cuando la carga termine
+                window.location.href = "{{ url_for('calendar') }}"; 
             } else {
                 width++;
                 document.getElementById("progressBar").style.width = width + "%";
@@ -52,3 +98,4 @@
     </script>
 </body>
 </html>
+
