@@ -10,6 +10,7 @@ import os
 # --- Configuración de la Aplicación ---
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "clave-secreta-muy-dificil-y-larga-para-produccion"
+# Usamos el path relativo y asumimos que la DB existe
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(app.root_path, "vacaciones.db") 
 
 # Inicializamos DB y LoginManager
@@ -19,54 +20,9 @@ login_manager.init_app(app)
 login_manager.login_view = 'login' 
 login_manager.login_message = 'Por favor, inicie sesión para acceder a esta página.'
 
-# -------------------------------------------------------------
-# LÓGICA DE USUARIOS PRECARGADOS Y COLORES
-# -------------------------------------------------------------
-
-COLOR_PALETTE = [
-    "#4285F4", "#34A853", "#FBBC05", "#673AB7", "#009688", "#76A0D7", "#8E24AA",
-    "#00BCD4", "#FF9800", "#795548", "#4CAF50", "#FFEB3B", "#03A9F4", "#CDDC39", 
-    "#FFC107", "#E67C73", "#757575", "#00AEEF"
-]
-
-USUARIOS_A_CARGAR = [
-    # SÚPER USUARIO
-    {"username": "SUPER", "password": "SUPER2025", "is_admin": True}, 
-    
-    # EMPLEADOS DE PRUEBA
-    {"username": "fionna.lucas", "password": "Mendoza2025", "is_admin": False},
-    {"username": "orue.hernan", "password": "BuenosAires2025", "is_admin": False},
-    {"username": "fazzi.juan", "password": "TDF2025", "is_admin": False},
-    # Añade aquí los demás 14 empleados
-]
-
-def initialize_users():
-    """Crea los usuarios predefinidos en la DB si aún no existen, asignando colores."""
-    random.shuffle(COLOR_PALETTE)
-    empleado_colors = iter(COLOR_PALETTE)
-
-    for user_data in USUARIOS_A_CARGAR:
-        if not User.query.filter_by(username=user_data['username']).first():
-            
-            # Asignar color si es empleado
-            if not user_data.get('is_admin'):
-                user_data['color'] = next(empleado_colors)
-            else:
-                user_data['color'] = "#000000" # Color dummy para el admin
-
-            # Crea el objeto User y añade a la sesión
-            new_user = User(
-                username=user_data['username'],
-                password=user_data['password'], 
-                is_admin=user_data['is_admin'],
-                color=user_data['color']
-            )
-            db.session.add(new_user)
-            
-    db.session.commit()
 
 # -------------------------------------------------------------
-# DECORADORES PERSONALIZADOS
+# DEFINICIONES DE LÓGICA (initialize_users ya no se usa aquí)
 # -------------------------------------------------------------
 
 def admin_required(f):
@@ -88,7 +44,6 @@ def admin_required(f):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-
 @app.route("/")
 def splash():
     """Ruta inicial para la página del GIF/Chiste."""
@@ -101,15 +56,17 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        user = User.query.filter_by(username=username).first()
+        # Es crucial usar app.app_context() para asegurar la conexión a la DB
+        with app.app_context():
+            user = User.query.filter_by(username=username).first()
         
-        if user and user.password == password: 
-            login_user(user)
-            flash(f"Bienvenido, {user.username}!", "success")
-            return redirect(url_for("loading"))
-            
-        flash("Usuario o contraseña incorrectos.", "error")
-        return redirect(url_for("login")) 
+            if user and user.password == password: 
+                login_user(user)
+                flash(f"Bienvenido, {user.username}!", "success")
+                return redirect(url_for("loading"))
+                
+            flash("Usuario o contraseña incorrectos.", "error")
+            return redirect(url_for("login")) 
 
     return render_template("login.html")
 
@@ -171,7 +128,6 @@ def get_vacations():
     events = []
 
     for v in vacations:
-        # Usamos el color asignado y guardado en la tabla User
         user_color = v.user.color
         
         events.append({
@@ -219,14 +175,5 @@ def export_vacations():
         download_name=f"Reporte_Vacaciones_SUPER_{pd.Timestamp.now().strftime('%Y%m%d')}.xlsx"
     )
 
-# -------------------------------------------------------------
-# INICIALIZACIÓN Y EJECUCIÓN
-# -------------------------------------------------------------
-
 if __name__ == "__main__":
-    with app.app_context():
-        # ¡IMPORTANTE! Asegúrate de haber borrado tu DB antigua si modificaste models.py
-        db.create_all()     # Crea las tablas si no existen
-        initialize_users()  # Carga los usuarios de prueba/finales
-    
     app.run(debug=True)
