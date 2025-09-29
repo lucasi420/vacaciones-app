@@ -1,136 +1,233 @@
 <!DOCTYPE html>
-<html>
+​<html lang="es">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendario Vacaciones</title>
-
-    <!-- FullCalendar CSS -->
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
-
-    <!-- FullCalendar JS -->
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales/es.global.min.js'></script> <!-- Español -->
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 0;
-        }
-        h1 {
-            text-align: center;
-            font-size: 1.5em;
-            margin-top: 10px;
-        }
-        #calendar {
-            max-width: 100%;
-            margin: 10px auto;
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
-        }
-        .fc-daygrid-day-frame {
-            cursor: pointer;
-        }
-        .fc-event {
-            font-size: 0.8em;
-            padding: 2px;
-        }
-        .admin-panel {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .admin-button {
-            padding: 10px;
-            background: #007bff;
-            color: white;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: bold;
-            display: inline-block;
-            margin: 5px;
-        }
-        .admin-button:hover {
-            background: #0056b3;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario de Vacaciones</title>
+<!-- Tailwind CSS (Cargado para estética) -->
+<script src="https://www.google.com/search?q=https://cdn.tailwindcss.com"></script>
+<!-- FullCalendar JS y CSS -->
+<link rel="stylesheet" href="https://www.google.com/search?q=https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.11/main.min.css">
+<script src="https://www.google.com/search?q=https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.11/main.min.js"></script>
+<script src="https://www.google.com/search?q=https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.11/locales-all.min.js"></script>
+<style>
+    /* Estilos personalizados para el calendario */
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f7f9fc;
+    }
+    #calendar-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 20px;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    /* Ajustar la altura del calendario para mejor visualización */
+    .fc {
+        height: 80vh; 
+    }
+    /* Estilos de botones de FullCalendar */
+    .fc-toolbar-title {
+        font-size: 1.5rem !important;
+        font-weight: 600;
+        color: #1e293b;
+    }
+    .fc-button-primary {
+        background-color: #4285F4 !important;
+        border-color: #4285F4 !important;
+        transition: background-color 0.2s;
+    }
+    .fc-button-primary:hover {
+        background-color: #3367D6 !important;
+    }
+    /* Estilo para los eventos marcados por el usuario actual */
+    .fc-event-user-current {
+        border: 2px solid #3367D6; /* Borde más visible */
+        cursor: pointer;
+    }
+</style>
 </head>
-<body>
-
-    <h1>Calendario Vacaciones</h1>
-
-    <!-- Botones solo para súper usuario -->
-    {% if current_user.is_admin %}
-    <div class="admin-panel">
-        <a href="{{ url_for('create_user') }}" class="admin-button">Crear Usuario</a>
-        <a href="{{ url_for('export_vacations') }}" class="admin-button" style="background:#28a745;">Exportar a Excel</a>
+<body class="p-4 md:p-8">
+    <div class="header-bar bg-white p-4 shadow-md rounded-lg mb-6 flex justify-between items-center max-w-7xl mx-auto">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-800">
+            Calendario de Vacaciones
+        </h1>
+        <p class="text-sm text-gray-600">
+            Sesión iniciada como: <span class="font-semibold" id="current-username">{{ current_user.username }}</span>
+            {% if current_user.is_admin %}
+                <span class="text-xs bg-red-100 text-red-700 py-0.5 px-2 rounded-full font-bold ml-2">ADMIN</span>
+            {% endif %}
+        </p>
     </div>
-    {% endif %}
+    <div class="flex space-x-3">
+        {% if current_user.is_admin %}
+            <a href="{{ url_for('export_vacations') }}" 
+               class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 flex items-center">
+                <!-- Icono de Excel -->
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mr-2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                Exportar Excel
+            </a>
+        {% endif %}
+        <!-- Asumiendo que existe una ruta 'logout' -->
+        <a href="{{ url_for('logout') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300">
+            Cerrar Sesión
+        </a>
+    </div>
+</div>
 
-    <div id='calendar'></div>
+<!-- Contenedor del Calendario -->
+<div id="calendar-container">
+    <div id="calendar"></div>
+</div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var calendarEl = document.getElementById('calendar');
+<!-- Mensaje Toast (simulación de flash/alert) -->
+<div id="toast-message" class="fixed bottom-5 right-5 bg-blue-600 text-white p-3 rounded-lg shadow-xl hidden transition-opacity duration-300"></div>
 
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                selectable: true,
-                locale: 'es', // <-- idioma español
-                events: '/get_vacations',
+<script>
+    // ID y Color del usuario actual (disponible en Jinja)
+    const currentUserId = {{ current_user.id }};
+    const currentUserColor = '{{ current_user.color }}';
+    
+    // Función para mostrar mensajes de éxito/error sin usar alert()
+    function showToast(message, type = 'info') {
+        const toast = document.getElementById('toast-message');
+        toast.textContent = message;
+        
+        // Colores para éxito/error/info
+        toast.classList.remove('bg-blue-600', 'bg-green-600', 'bg-red-600');
+        if (type === 'success') {
+            toast.classList.add('bg-green-600');
+        } else if (type === 'error') {
+            toast.classList.add('bg-red-600');
+        } else {
+            toast.classList.add('bg-blue-600');
+        }
+        
+        toast.classList.remove('hidden');
+        setTimeout(() => {
+            toast.classList.add('hidden');
+        }, 3000);
+    }
 
-                dateClick: function (info) {
-                    let selectedDate = info.dateStr;
+    // Usamos document.onload para garantizar que todos los elementos existan
+    document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
 
-                    fetch("/toggle_vacation", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ date: selectedDate })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            calendar.refetchEvents();
-                        } else {
-                            alert("Error guardando la fecha.");
-                        }
-                    });
-                },
-
-                eventContent: function(arg) {
-                    return { html: "<div style='background-color:" + arg.event.backgroundColor + "; padding:2px; font-size:0.8em;'>" + arg.event.title + "</div>" };
-                },
-
-                eventsSet: function(events) {
-                    let dateCount = {};
-                    events.forEach(event => {
-                        if (!dateCount[event.start]) dateCount[event.start] = 0;
-                        dateCount[event.start]++;
-                    });
-                    events.forEach(event => {
-                        if (dateCount[event.start] > 1) {
-                            event.setProp("backgroundColor", shadeColor(event.backgroundColor, -30));
-                        }
-                    });
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            // Configuraciones básicas
+            initialView: 'dayGridMonth',
+            locale: 'es', 
+            height: 'auto', // Ajuste de altura
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,listWeek' 
+            },
+            
+            // Fuente de datos
+            events: '/get_vacations',
+            
+            // Configuración de visualización de eventos
+            eventDisplay: 'block',
+            eventDidMount: function(info) {
+                // Si el evento es del usuario actual, se le añade una clase para distinguirlo
+                if (parseInt(info.event.extendedProps.id_usuario) === currentUserId) {
+                    info.el.classList.add('fc-event-user-current');
+                    info.el.title = "Click para eliminar esta vacación.";
+                } else {
+                    info.el.title = info.event.title;
                 }
-            });
+            },
+            
+            // Lógica para marcar días (siempre intenta enviar la petición)
+            dateClick: function(info) {
+                // Al hacer clic en una celda, SIEMPRE intentamos hacer el toggle.
+                const clickedDate = info.dateStr;
+                toggleVacation(clickedDate);
+            },
 
-            function shadeColor(color, percent) {
-                let f=parseInt(color.slice(1),16),
-                    t=percent<0?0:255,
-                    p=percent<0?percent*-1:percent,
-                    R=f>>16,
-                    G=f>>8&0x00FF,
-                    B=f&0x0000FF;
-                return "#" + (0x1000000 + (Math.round((t-R)*p/100)+R)*0x10000 + (Math.round((t-G)*p/100)+G)*0x100 + (Math.round((t-B)*p/100)+B)).toString(16).slice(1);
+            // Lógica para eliminar/desmarcar eventos existentes (Click en el evento)
+            eventClick: function(info) {
+                const eventUserId = parseInt(info.event.extendedProps.id_usuario);
+                const eventDate = info.event.startStr;
+                
+                // Si el evento NO es del usuario actual, no puede eliminarlo.
+                if (eventUserId !== currentUserId) {
+                    showToast(`No puedes eliminar las vacaciones de ${info.event.title}.`, 'error');
+                    return;
+                }
+
+                // Si el evento ES del usuario actual, lo eliminamos llamando al toggle
+                if (confirm(`¿Estás seguro de que quieres eliminar tu vacación del ${eventDate}?`)) {
+                     toggleVacation(eventDate, false, info.event);
+                }
             }
-
-            calendar.render();
         });
-    </script>
 
+        calendar.render();
+
+
+        // Función para enviar la solicitud al servidor
+        function toggleVacation(dateStr, isAdding = true, eventToRemove = null) {
+            fetch('/toggle_vacation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ date: dateStr })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // El backend ya hizo el toggle. Ahora actualizamos el calendario.
+                    
+                    // 1. Buscamos si el evento ya existe en el frontend para el usuario actual.
+                    const existingEvents = calendar.getEvents().filter(event => 
+                        event.startStr === dateStr && 
+                        parseInt(event.extendedProps.id_usuario) === currentUserId
+                    );
+
+                    if (existingEvents.length > 0) {
+                        // Si existe, es porque el backend lo borró. Lo quitamos del frontend.
+                        existingEvents.forEach(e => e.remove());
+                        showToast("Vacación eliminada.", 'info');
+                    } else {
+                        // Si no existe, es porque el backend lo añadió. Lo creamos en el frontend.
+                        calendar.addEvent({
+                            title: '{{ current_user.username }}',
+                            start: dateStr,
+                            end: dateStr,
+                            allDay: true,
+                            backgroundColor: currentUserColor,
+                            id_usuario: currentUserId
+                        });
+                        showToast("Vacación marcada.", 'success');
+                    }
+                } else {
+                    showToast("Error al procesar la solicitud. Intente nuevamente.", 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast("Error de conexión con el servidor.", 'error');
+            });
+        }
+
+        // Muestra los mensajes flash de Flask
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    showToast(message, category);
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+    });
+</script>
 </body>
 </html>
