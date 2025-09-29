@@ -8,10 +8,8 @@
 <!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- FullCalendar JS y CSS -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.11/main.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.11/main.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.11/locales-all.min.js"></script>
+<!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
 
 <style>
     body {
@@ -89,6 +87,9 @@
 
 <!-- Toast mensajes -->
 <div id="toast-message" class="fixed bottom-5 right-5 bg-blue-600 text-white p-3 rounded-lg shadow-xl hidden transition-opacity duration-300"></div>
+
+<!-- FullCalendar JS (bundle global) -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
 <script>
     const currentUserId = {{ current_user.id }};
