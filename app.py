@@ -45,9 +45,9 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 @app.route("/")
-def splash():
+def login():
     """Ruta inicial para la página del GIF/Chiste."""
-    return render_template("splash.html") 
+    return render_template("login.html") 
 
 
 @app.route("/login", methods=["GET", "POST"])
