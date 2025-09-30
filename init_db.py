@@ -3,11 +3,10 @@ from models import db, User
 import os
 import random
 
-# --- Configuración (DEBE ser idéntica a app.py) ---
+# --- Configuración (idéntica a app.py) ---
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "clave-secreta-muy-dificil-y-larga-para-produccion"
-# Lee la URL de la base de datos desde la variable de entorno
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL") 
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")  # ✅ Postgres en Supabase
 db.init_app(app)
 
 # Paleta de colores (debe ser la misma que en app.py)
@@ -26,8 +25,6 @@ USUARIOS_A_CARGAR = [
 
 def initialize_users():
     """Crea las tablas y precarga los usuarios si no existen."""
-    
-    # Asegura que la DB se cree
     db.create_all()     
     
     random.shuffle(COLOR_PALETTE)
@@ -35,13 +32,10 @@ def initialize_users():
 
     for user_data in USUARIOS_A_CARGAR:
         if not User.query.filter_by(username=user_data['username']).first():
-            
-            # Asignar color si es empleado
             color = next(empleado_colors) if not user_data.get('is_admin') else "#000000"
-
             new_user = User(
                 username=user_data['username'],
-                password=user_data['password'], 
+                password=user_data['password'],  # ⚠️ acá no estás hasheando
                 is_admin=user_data.get('is_admin', False),
                 color=color
             )
