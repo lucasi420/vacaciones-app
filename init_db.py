@@ -43,7 +43,15 @@ def initialize_users():
             
             # 3. Asigna el color
             color = next(empleado_colors) if not user_data.get('is_admin') else "#000000"
-        
+            # 4. Crea el nuevo objeto de usuario
+            new_user = User(
+                username=user_data['username'],
+                # La contraseña se asigna UNA SOLA VEZ
+                password=user_data['password'], 
+                is_admin=user_data.get('is_admin', False),
+                color=color
+            )
+            db.session.add(new_user)
             
     # 5. Guarda todos los cambios
     db.session.commit()
