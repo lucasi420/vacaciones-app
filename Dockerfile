@@ -1,25 +1,23 @@
 FROM python:3.11-slim
 
-# 1. Configurar variables de entorno para el entorno virtual (venv)
-ENV VIRTUAL_ENV=/venv
-# Añadimos /venv/bin al PATH para que Gunicorn se encuentre fácilmente
-ENV PATH="/venv/bin:$PATH"
+# Variables de entorno
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# 2. Establecer el directorio de trabajo
+# Directorio de trabajo
 WORKDIR /app
 
-# 3. Copiar requisitos e instalar dependencias DENTRO del venv
+# Copiar requisitos primero
 COPY requirements.txt .
-# Crea el entorno virtual
-RUN python3 -m venv $VIRTUAL_ENV
-# Instala las dependencias en el entorno virtual
-# Nota: La instalación es DENTRO del venv, gracias al PATH.
+
+# Instalar dependencias
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 4. Copiar el resto del código (incluyendo app.py, models.py, init_db.py y templates)
+# Copiar el resto del código
 COPY . .
 
-# 5. Comando de inicio
-# CRÍTICO: Ejecutamos init_db.py (crea la DB y usuarios) y luego,
-# si es exitoso (&&), iniciamos Gunicorn.
-CMD python init_db.py && gunicorn --bind 0.0.0.0:$PORT app:app
+# Puerto que usará Render
+ENV PORT=10000
+
+# Ejecutar Gunicorn directamente
+CMD gunicorn --bind 0.0.0.0:$PORT app:app
