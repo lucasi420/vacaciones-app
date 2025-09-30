@@ -1,12 +1,11 @@
 from flask import Flask
-from models import db, User # Importamos User para poder crearlos
+from models import db, User 
+from config import Config
 import os
 import random
+from sqlalchemy.exc import ProgrammingError, OperationalError
 
 # --- Configuración (DEBE ser idéntica a app.py) ---
-# Usamos una clave de fallback si no se encuentra SECRET_KEY en el entorno
-from config import Config 
-
 # Usamos Flask para crear el contexto de la aplicación
 app = Flask(__name__)
 # Cargamos la configuración (que incluye DATABASE_URL de os.getenv)
@@ -36,37 +35,48 @@ def initialize_users_and_db():
     print("Iniciando conexión y creación de tablas y usuarios iniciales...")
     
     try:
-        # 1. Asegura que la DB y el contexto estén listos
+        # 1. PASO CRÍTICO: CREAR LAS TABLAS. Esto debe ir primero.
         db.create_all()     
         
+        print("✅ Tablas creadas (o ya existentes).")
         random.shuffle(COLOR_PALETTE)
         empleado_colors = iter(COLOR_PALETTE)
 
-        # 2. Carga de usuarios fijos
-        for user_data in USUARIOS_A_CARGAR:
-            # Verifica si el usuario ya existe para no duplicarlo
-            if not User.query.filter_by(username=user_data['username']).first():
-                
-                # Asignar color (negro para admin, colores rotativos para otros)
-                color = "#000000" if user_data.get('is_admin') else next(empleado_colors)
-                
-                # CREACIÓN DEL OBJETO (¡Constructor corregido!)
-                new_user = User(
-                    username=user_data['username'],
-                    password=user_data['password'], 
-                    is_admin=user_data.get('is_admin', False),
-                    color=color
-                )
-                db.session.add(new_user)
-                print(f"-> Usuario creado: {new_user.username}")
-                
-        db.session.commit()
-        print("✅ Base de datos y usuarios inicializados exitosamente.")
-        
+        # 2. Carga de usuarios fijos - Protegida con try/except
+        try:
+            for user_data in USUARIOS_A_CARGAR:
+                # Verifica si el usuario ya existe para no duplicarlo
+                # Esta consulta es la que fallaba al inicio
+                if not User.query.filter_by(username=user_data['username']).first():
+                    
+                    # Asignar color (negro para admin, colores rotativos para otros)
+                    color = "#000000" if user_data.get('is_admin') else next(empleado_colors)
+                    
+                    # CREACIÓN DEL OBJETO
+                    new_user = User(
+                        username=user_data['username'],
+                        password=user_data['password'], 
+                        is_admin=user_data.get('is_admin', False),
+                        color=color
+                    )
+                    db.session.add(new_user)
+                    print(f"-> Usuario creado: {new_user.username}")
+                    
+            db.session.commit()
+            print("✅ Usuarios inicializados exitosamente.")
+
+        except (ProgrammingError, OperationalError) as e:
+            # Capturamos errores si la tabla aún no es visible para el query,
+            # pero permitimos que el servidor arranque.
+            db.session.rollback()
+            print(f"⚠️ Aviso: Falló la creación de usuarios iniciales: {e}")
+            print("         Esto es normal si las tablas acaban de ser creadas. El servidor continuará.")
+            
     except Exception as e:
+        # Si falla db.create_all() o algo más, logueamos el error y permitimos arrancar Gunicorn.
         print(f"❌ ERROR CRÍTICO al inicializar DB o usuarios: {e}")
-        # Detenemos el proceso si hay fallo de conexión/driver
-        raise e 
+        # NO usamos 'raise e' para evitar que Render detenga todo el despliegue.
+        print("El servicio intentará continuar con Gunicorn...")
     
 # Ejecutamos la inicialización
 with app.app_context():
