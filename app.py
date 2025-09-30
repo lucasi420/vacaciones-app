@@ -6,18 +6,17 @@ import pandas as pd
 import io
 import random
 import os
+from config import Config  # <-- Importamos config.py
 
 # --- Configuración de la Aplicación ---
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "clave-secreta-muy-dificil-y-larga-para-produccion"
-# Usamos el path relativo y asumimos que la DB existe
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///vacaciones.db"
+app.config.from_object(Config)  # <-- Cargamos la configuración desde config.py
 
 # Inicializamos DB y LoginManager
 db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login' 
+login_manager.login_view = 'login'
 login_manager.login_message = 'Por favor, inicie sesión para acceder a esta página.'
 
 
