@@ -6,7 +6,8 @@ import random
 # --- Configuración (DEBE ser idéntica a app.py) ---
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "clave-secreta-muy-dificil-y-larga-para-produccion"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///vacaciones.db" 
+# Lee la URL de la base de datos desde la variable de entorno
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL") 
 db.init_app(app)
 
 # Paleta de colores (debe ser la misma que en app.py)
