@@ -1,20 +1,21 @@
 from flask import Flask
-from models import db, User # Asumo que models.py tiene tus clases de SQLAlchemy
+from models import db, User # Importamos User para poder crearlos
 import os
 import random
 
 # --- Configuración (DEBE ser idéntica a app.py) ---
-# Usamos la clase Flask para cargar la configuración, aunque no es un servidor
+# Usamos una clave de fallback si no se encuentra SECRET_KEY en el entorno
+from config import Config 
+
+# Usamos Flask para crear el contexto de la aplicación
 app = Flask(__name__)
+# Cargamos la configuración (que incluye DATABASE_URL de os.getenv)
+app.config.from_object(Config)
 
-# NOTA: En producción, Render inyectará SECRET_KEY y DATABASE_URL
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "clave-secreta-por-defecto") 
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL") 
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False # Siempre recomendado en Flask-SQLAlchemy
-
+# Inicializamos DB
 db.init_app(app)
 
-# Paleta de colores para los empleados
+# Paleta de colores para empleados
 COLOR_PALETTE = [
     "#4285F4", "#34A853", "#FBBC05", "#673AB7", "#009688", "#76A0D7", "#8E24AA",
     "#00BCD4", "#FF9800", "#795548", "#4CAF50", "#FFEB3B", "#03A9F4", "#CDDC39", 
@@ -28,35 +29,45 @@ USUARIOS_A_CARGAR = [
     {"username": "fazzi.juan", "password": "TDF2025", "is_admin": False},
 ]
 
-def initialize_users():
+
+def initialize_users_and_db():
     """Crea las tablas y precarga los usuarios si no existen."""
     
-    # 1. Crea las tablas en la DB conectada por DATABASE_URL
-    db.create_all()     
+    print("Iniciando conexión y creación de tablas y usuarios iniciales...")
     
-    random.shuffle(COLOR_PALETTE)
-    empleado_colors = iter(COLOR_PALETTE)
+    try:
+        # 1. Asegura que la DB y el contexto estén listos
+        db.create_all()     
+        
+        random.shuffle(COLOR_PALETTE)
+        empleado_colors = iter(COLOR_PALETTE)
 
-    for user_data in USUARIOS_A_CARGAR:
-        # 2. Verifica si el usuario ya existe
-        if not User.query.filter_by(username=user_data['username']).first():
-            
-            # 3. Asigna el color
-            color = next(empleado_colors) if not user_data.get('is_admin') else "#000000"
-            # 4. Crea el nuevo objeto de usuario
-            new_user = User(
-                username=user_data['username'],
-                # La contraseña se asigna UNA SOLA VEZ
-                password=user_data['password'], 
-                is_admin=user_data.get('is_admin', False),
-                color=color
-            )
-            db.session.add(new_user)
-            
-    # 5. Guarda todos los cambios
-    db.session.commit()
-    print("Base de datos y usuarios inicializados exitosamente.")
+        # 2. Carga de usuarios fijos
+        for user_data in USUARIOS_A_CARGAR:
+            # Verifica si el usuario ya existe para no duplicarlo
+            if not User.query.filter_by(username=user_data['username']).first():
+                
+                # Asignar color (negro para admin, colores rotativos para otros)
+                color = "#000000" if user_data.get('is_admin') else next(empleado_colors)
+                
+                # CREACIÓN DEL OBJETO (¡Constructor corregido!)
+                new_user = User(
+                    username=user_data['username'],
+                    password=user_data['password'], 
+                    is_admin=user_data.get('is_admin', False),
+                    color=color
+                )
+                db.session.add(new_user)
+                print(f"-> Usuario creado: {new_user.username}")
+                
+        db.session.commit()
+        print("✅ Base de datos y usuarios inicializados exitosamente.")
+        
+    except Exception as e:
+        print(f"❌ ERROR CRÍTICO al inicializar DB o usuarios: {e}")
+        # Detenemos el proceso si hay fallo de conexión/driver
+        raise e 
     
 # Ejecutamos la inicialización
 with app.app_context():
-    initialize_users()
+    initialize_users_and_db()
