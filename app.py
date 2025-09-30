@@ -21,7 +21,7 @@ login_manager.login_message = 'Por favor, inicie sesión para acceder a esta pá
 
 
 # -------------------------------------------------------------
-# DEFINICIONES DE LÓGICA (initialize_users ya no se usa aquí)
+# DEFINICIONES DE LÓGICA
 # -------------------------------------------------------------
 
 def admin_required(f):
@@ -57,16 +57,17 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        with app.app_context():
-            user = User.query.filter_by(username=username).first()
+        # 🚀 CORRECCIÓN: Eliminamos 'with app.app_context():'
+        # El contexto ya existe durante la solicitud web.
+        user = User.query.filter_by(username=username).first()
 
-            if user and user.password == password:
-                login_user(user)
-                flash(f"Bienvenido, {user.username}!", "success")
-                return redirect(url_for("loading"))
+        if user and user.password == password:
+            login_user(user)
+            flash(f"Bienvenido, {user.username}!", "success")
+            return redirect(url_for("loading"))
 
-            flash("Usuario o contraseña incorrectos.", "error")
-            return redirect(url_for("login"))
+        flash("Usuario o contraseña incorrectos.", "error")
+        return redirect(url_for("login"))
 
     return render_template("login.html")
 
@@ -107,6 +108,7 @@ def toggle_vacation():
     if not fecha:
         return jsonify({"success": False, "message": "Falta la fecha"}), 400
 
+    # Estas rutas nunca tuvieron el problema del contexto, son correctas.
     vaca = Vacation.query.filter_by(user_id=current_user.id, date=fecha).first()
 
     if vaca:
@@ -123,6 +125,7 @@ def toggle_vacation():
 @login_required
 def get_vacations():
     """Devuelve las vacaciones de TODOS los empleados para el calendario."""
+    # Estas rutas nunca tuvieron el problema del contexto, son correctas.
     vacations = Vacation.query.all()
     events = []
 
@@ -147,6 +150,7 @@ def get_vacations():
 @admin_required
 def export_vacations():
     """Recopila todos los datos de vacaciones y los exporta a un archivo Excel."""
+    # Estas rutas nunca tuvieron el problema del contexto, son correctas.
     vacations = Vacation.query.all()
     data = []
 
