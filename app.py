@@ -10,7 +10,7 @@ from config import Config  # <-- Importamos config.py
 
 # --- Configuración de la Aplicación ---
 app = Flask(__name__)
-app.config.from_object(Config)  # <-- Cargamos la configuración desde config.py
+app.config.from_object(Config)  # <-- Cargamos configuración desde config.py
 
 # Inicializamos DB y LoginManager
 db.init_app(app)
@@ -35,6 +35,7 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
 # -------------------------------------------------------------
 # FUNCIONES DE AUTENTICACIÓN Y NAVEGACIÓN
 # -------------------------------------------------------------
@@ -43,10 +44,11 @@ def admin_required(f):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
 @app.route("/")
 def splash():
     """Ruta inicial para la página del GIF/Chiste."""
-    return render_template("splash.html") 
+    return render_template("splash.html")
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -55,17 +57,16 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        # Es crucial usar app.app_context() para asegurar la conexión a la DB
         with app.app_context():
             user = User.query.filter_by(username=username).first()
-        
-            if user and user.password == password: 
+
+            if user and user.password == password:
                 login_user(user)
                 flash(f"Bienvenido, {user.username}!", "success")
                 return redirect(url_for("loading"))
-                
+
             flash("Usuario o contraseña incorrectos.", "error")
-            return redirect(url_for("login")) 
+            return redirect(url_for("login"))
 
     return render_template("login.html")
 
@@ -91,6 +92,7 @@ def calendar():
     """Vista principal del calendario para todos los usuarios."""
     return render_template("calendar.html")
 
+
 # -------------------------------------------------------------
 # FUNCIONES DEL CALENDARIO (API)
 # -------------------------------------------------------------
@@ -106,7 +108,7 @@ def toggle_vacation():
         return jsonify({"success": False, "message": "Falta la fecha"}), 400
 
     vaca = Vacation.query.filter_by(user_id=current_user.id, date=fecha).first()
-    
+
     if vaca:
         db.session.delete(vaca)
     else:
@@ -121,23 +123,21 @@ def toggle_vacation():
 @login_required
 def get_vacations():
     """Devuelve las vacaciones de TODOS los empleados para el calendario."""
-    
-    # Obtener todas las vacaciones con la relación de usuario
     vacations = Vacation.query.all()
     events = []
 
     for v in vacations:
         user_color = v.user.color
-        
         events.append({
             "title": v.user.username,
             "start": v.date,
-            "end": v.date, 
+            "end": v.date,
             "backgroundColor": user_color,
             "id_usuario": v.user.id
         })
-    
+
     return jsonify(events)
+
 
 # -------------------------------------------------------------
 # FUNCIONES DEL SÚPER USUARIO (ADMIN)
@@ -147,7 +147,6 @@ def get_vacations():
 @admin_required
 def export_vacations():
     """Recopila todos los datos de vacaciones y los exporta a un archivo Excel."""
-    
     vacations = Vacation.query.all()
     data = []
 
@@ -159,20 +158,19 @@ def export_vacations():
         })
 
     df = pd.DataFrame(data)
-    
-    # Preparamos el archivo Excel en memoria
+
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name="Reporte Vacaciones")
     output.seek(0)
 
-    # Devolvemos el archivo para su descarga
     return send_file(
-        output, 
+        output,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         as_attachment=True,
         download_name=f"Reporte_Vacaciones_SUPER_{pd.Timestamp.now().strftime('%Y%m%d')}.xlsx"
     )
+
 
 if __name__ == "__main__":
     app.run(debug=True)
