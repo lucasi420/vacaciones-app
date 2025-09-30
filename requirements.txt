@@ -4,9 +4,4 @@ Flask-Login
 pandas
 openpyxl
 gunicorn
-Werkzeug
-Jinja2
-itsdangerous
-MarkupSafe
-click
-colorama
+psycopg2-binary
