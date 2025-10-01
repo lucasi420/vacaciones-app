@@ -4,11 +4,12 @@ from config import Config
 import os
 import random
 from sqlalchemy.exc import ProgrammingError, OperationalError
+# IMPORTACIÓN CRÍTICA PARA GENERAR HASHEOS
+from werkzeug.security import generate_password_hash 
+
 
 # --- Configuración (DEBE ser idéntica a app.py) ---
-# Usamos Flask para crear el contexto de la aplicación
 app = Flask(__name__)
-# Cargamos la configuración (que incluye DATABASE_URL de os.getenv)
 app.config.from_object(Config)
 
 # Inicializamos DB
@@ -35,7 +36,6 @@ def initialize_users_and_db():
     print("Iniciando conexión y creación de tablas y usuarios iniciales...")
     
     try:
-        # 1. PASO CRÍTICO: CREAR LAS TABLAS. Esto debe ir primero.
         db.create_all()     
         
         print("✅ Tablas creadas (o ya existentes).")
@@ -45,17 +45,17 @@ def initialize_users_and_db():
         # 2. Carga de usuarios fijos - Protegida con try/except
         try:
             for user_data in USUARIOS_A_CARGAR:
-                # Verifica si el usuario ya existe para no duplicarlo
-                # Esta consulta es la que fallaba al inicio
                 if not User.query.filter_by(username=user_data['username']).first():
                     
-                    # Asignar color (negro para admin, colores rotativos para otros)
                     color = "#000000" if user_data.get('is_admin') else next(empleado_colors)
+                    
+                    # 🔑 CORRECCIÓN DE SEGURIDAD: HASHEAMOS LA CONTRASEÑA ANTES DE GUARDARLA
+                    hashed_password = generate_password_hash(user_data['password'])
                     
                     # CREACIÓN DEL OBJETO
                     new_user = User(
                         username=user_data['username'],
-                        password=user_data['password'], 
+                        password=hashed_password,  # <-- Guardamos el hash
                         is_admin=user_data.get('is_admin', False),
                         color=color
                     )
@@ -66,16 +66,12 @@ def initialize_users_and_db():
             print("✅ Usuarios inicializados exitosamente.")
 
         except (ProgrammingError, OperationalError) as e:
-            # Capturamos errores si la tabla aún no es visible para el query,
-            # pero permitimos que el servidor arranque.
             db.session.rollback()
             print(f"⚠️ Aviso: Falló la creación de usuarios iniciales: {e}")
-            print("         Esto es normal si las tablas acaban de ser creadas. El servidor continuará.")
+            print("         El servidor intentará continuar.")
             
     except Exception as e:
-        # Si falla db.create_all() o algo más, logueamos el error y permitimos arrancar Gunicorn.
         print(f"❌ ERROR CRÍTICO al inicializar DB o usuarios: {e}")
-        # NO usamos 'raise e' para evitar que Render detenga todo el despliegue.
         print("El servicio intentará continuar con Gunicorn...")
     
 # Ejecutamos la inicialización
