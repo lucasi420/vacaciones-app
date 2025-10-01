@@ -69,7 +69,7 @@ def login():
         flash("Usuario o contraseña incorrectos.", "error")
         return redirect(url_for("login"))
 
-    return render_template("login.html")
+    return render_template("splash.html")
 
 
 @app.route("/loading")
