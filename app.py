@@ -7,8 +7,8 @@ import io
 import random
 import os
 from config import Config
-# IMPORTACIÓN CRÍTICA PARA MANEJO DE CONTRASEÑAS
-from werkzeug.security import check_password_hash 
+
+# Ya no necesitamos werkzeug.security si usamos texto plano.
 
 # --- Configuración de la Aplicación ---
 app = Flask(__name__)
@@ -61,13 +61,13 @@ def login():
 
         user = User.query.filter_by(username=username).first()
 
-        # 🔑 CORRECCIÓN DE SEGURIDAD: Usamos check_password_hash para verificar la contraseña
-        if user and check_password_hash(user.password, password):
+        # 🔑 COMPARACIÓN FINAL: Usamos texto plano (==) para que coincida con la DB.
+        if user and user.password == password:
             login_user(user)
             flash(f"Bienvenido, {user.username}!", "success")
             return redirect(url_for("loading"))
 
-        # Si el usuario no existe o la contraseña no coincide (falla check_password_hash)
+        # Si el usuario no existe o la contraseña no coincide
         flash("Usuario o contraseña incorrectos.", "error")
         return redirect(url_for("login")) # Esto redirige a GET /login, que muestra splash.html
 
@@ -178,3 +178,4 @@ def export_vacations():
 
 if __name__ == "__main__":
     app.run(debug=True)
+    
