@@ -5,17 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    
+    <style>
+        /* Estilos necesarios para posicionar el "Ojito" */
+        .password-wrapper {
+            position: relative;
+            margin-bottom: 10px; /* Separación del botón Entrar */
+        }
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%); 
+            cursor: pointer;
+            user-select: none;
+            z-index: 10;
+        }
+        /* Ajuste para que el input no quede detrás del icono */
+        .password-wrapper input {
+            padding-right: 40px; 
+            width: 100%;
+            box-sizing: border-box; /* Crucial para que el padding no desborde */
+        }
+
+        /* Estilos para el mensaje de error de Flask */
+        .flash-error {
+            padding: 10px;
+            background-color: #f8d7da; /* Rojo claro */
+            color: #721c24; /* Texto rojo oscuro */
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
 </head>
 <body>
     <div class="login-container">
         <h1>Vacaciones SUPER 2025-2026</h1>
         <img src="{{ url_for('static', filename='img/logo_empresa.png') }}" alt="Logo de la empresa">
+
+        <!-- LÓGICA PARA MOSTRAR MENSAJES DE ERROR DE LA SESIÓN -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'error' %}
+                        <div class="flash-error">{{ message }}</div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         
         <form method="POST" action="/login">
             <input type="text" name="username" placeholder="Usuario" required>
-            <input type="password" name="password" placeholder="Contraseña" required>
+            
+            <!-- CONTENEDOR PARA EL CAMPO Y EL "OJITO" -->
+            <div class="password-wrapper">
+                <input type="password" id="passwordInput" name="password" placeholder="Contraseña" required>
+                <!-- Botón de alternancia -->
+                <span class="toggle-password" onclick="togglePasswordVisibility()">
+                    👁️
+                </span>
+            </div>
+
             <button type="submit">Entrar</button>
         </form>
     </div>
+
+    <!-- SCRIPT PARA ALTERNAR LA VISIBILIDAD DE LA CONTRASEÑA -->
+    <script>
+        function togglePasswordVisibility() {
+            const passwordField = document.getElementById('passwordInput');
+            const toggleButton = document.querySelector('.toggle-password');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleButton.textContent = '🙈'; // Ojo cerrado
+            } else {
+                passwordField.type = 'password';
+                toggleButton.textContent = '👁️'; // Ojo abierto
+            }
+        }
+    </script>
 </body>
 </html>
