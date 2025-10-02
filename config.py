@@ -9,14 +9,16 @@ class Config:
     
     # --- Configuración CRÍTICA para Supabase (Pooler) ---
     
-    # 1. CRÍTICO: Deshabilita el pool de conexiones de SQLAlchemy.
-    # Esto evita conflictos con el Pooler de Supabase (Supavisor/Pgbouncer).
-    # ¡Necesario para resolver errores de conexión y timeout!
+    # ¡IMPORTANTE! NullPool y un Timeout bajo previenen el Worker Timeout de Render.
     SQLALCHEMY_ENGINE_OPTIONS = {
-        "poolclass": NullPool,  # <--- ESTE ES EL CAMBIO CLAVE
+        "poolclass": NullPool, 
+        "pool_recycle": 300,
+        "pool_pre_ping": True,
         
-        # 2. Configuración de salud/vida de la conexión (Mantenido de tu código)
-        "pool_recycle": 300,  # Recicla conexiones después de 5 minutos (300 segundos)
-        "pool_pre_ping": True # Prueba la conexión antes de usarla
+        # 🚨 AÑADE ESTO: Tiempo de espera bajo para la conexión
+        # Si la base de datos no responde en 5 segundos, la conexión fallará rápido,
+        # liberando el worker de Render antes de que expire.
+        "connect_args": {
+            "connect_timeout": 5  # 5 segundos
+        }
     }
-
