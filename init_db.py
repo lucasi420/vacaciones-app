@@ -26,8 +26,18 @@ COLOR_PALETTE = [
 USUARIOS_A_CARGAR = [
     {"username": "SUPER", "password": "SUPER2025", "is_admin": True}, 
     {"username": "Fionna.lucas", "password": "SUPER2025", "is_admin": False},
-    {"username": "orue.hernan", "password": "BuenosAires2025", "is_admin": False},
-    {"username": "fazzi.juan", "password": "TDF2025", "is_admin": False},
+    {"username": "Orue.hernan", "password": "SUPER2025", "is_admin": False},
+    {"username": "Fazzi.juan", "password": "SUPER2025", "is_admin": False},
+    {"username": "Fernandez.marcelo", "password": "SUPER2025", "is_admin": False},
+    {"username": "Moreno.luis", "password": "SUPER2025", "is_admin": False},
+    {"username": "Moreno.javier", "password": "SUPER2025", "is_admin": False},
+    {"username": "Santana.angel", "password": "SUPER2025", "is_admin": False},
+    {"username": "Godoy.guillermo", "password": "SUPER2025", "is_admin": False},
+    {"username": "Acosta.tomas", "password": "SUPER2025", "is_admin": False},
+    {"username": "Gobbi.fabian", "password": "SUPER2025", "is_admin": False},
+    {"username": "Sartori.pablo", "password": "SUPER2025", "is_admin": False},
+    {"username": "Cardenas.manuel", "password": "SUPER2025", "is_admin": False},
+    {"username": "Rodriguez.diego", "password": "SUPER2025", "is_admin": False},
 ]
 
 
