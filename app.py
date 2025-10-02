@@ -4,11 +4,15 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from functools import wraps
 import pandas as pd
 import io
-import random
 import os
+
+# 🚨 CORRECCIÓN DE SEGURIDAD CRÍTICA:
+# Usamos esto para verificar contraseñas hasheadas, reemplazando la comparación de texto plano.
+from werkzeug.security import check_password_hash 
+
+# Importamos la Configuración (que ya tiene NullPool y Timeout)
 from config import Config
 
-# Ya no necesitamos werkzeug.security si usamos texto plano.
 
 # --- Configuración de la Aplicación ---
 app = Flask(__name__)
@@ -44,6 +48,7 @@ def admin_required(f):
 
 @login_manager.user_loader
 def load_user(user_id):
+    # La consulta a la DB usa el engine con NullPool y Timeout
     return User.query.get(int(user_id))
 
 
@@ -61,15 +66,18 @@ def login():
 
         user = User.query.filter_by(username=username).first()
 
-        # 🔑 COMPARACIÓN FINAL: Usamos texto plano (==) para que coincida con la DB.
-        if user and user.password == password:
+        # 🔑 CORRECCIÓN DE SEGURIDAD: Usamos check_password_hash.
+        # Esto asume que las contraseñas en la DB están hasheadas.
+        if user and check_password_hash(user.password, password):
             login_user(user)
             flash(f"Bienvenido, {user.username}!", "success")
             return redirect(url_for("loading"))
 
         # Si el usuario no existe o la contraseña no coincide
         flash("Usuario o contraseña incorrectos.", "error")
-        return redirect(url_for("login")) # Esto redirige a GET /login, que muestra splash.html
+        
+        # Mejora: Renderizamos directamente para evitar un redirect innecesario.
+        return render_template("splash.html") 
 
     # Si es GET, muestra el splash (que contiene el formulario)
     return render_template("splash.html")
@@ -164,6 +172,7 @@ def export_vacations():
     df = pd.DataFrame(data)
 
     output = io.BytesIO()
+    # Usamos pd.ExcelWriter con openpyxl como motor
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name="Reporte Vacaciones")
     output.seek(0)
