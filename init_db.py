@@ -25,7 +25,7 @@ COLOR_PALETTE = [
 # Usuarios iniciales
 USUARIOS_A_CARGAR = [
     {"username": "SUPER", "password": "SUPER2025", "is_admin": True}, 
-    {"username": "fionna.lucas", "password": "Mendoza2025", "is_admin": False},
+    {"username": "fionna.lucas", "password": "SUPER2025", "is_admin": False},
     {"username": "orue.hernan", "password": "BuenosAires2025", "is_admin": False},
     {"username": "fazzi.juan", "password": "TDF2025", "is_admin": False},
 ]
